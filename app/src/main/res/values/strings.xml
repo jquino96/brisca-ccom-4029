@@ -1,4 +1,11 @@
 <resources>
-    <string name="app_name">Brisca</string>
+    <string name="app_name">Uno</string>
     <string name="action_settings">Settings</string>
+
+    <string name="title_activity_uno">UNOActivity</string>
+    <string name="dummy_button">Dummy Button</string>
+    <string name="dummy_content">DUMMY\nCONTENT</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>
