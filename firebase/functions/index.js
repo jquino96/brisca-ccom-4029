@@ -62,12 +62,13 @@ exports.roomUpdate = functions.firestore
                 hands[player] = []
             );
             const gameRef = db.collection('game').doc();
-            gameRef.set({room: roomID,
+            gameRef.set({
                 players,
                 turn: 0,
                 played: [],
                 deck: [],
-                hands
+                hands,
+                dir: 1
             });
             const gameID = gameRef.id;
             const dealerRef = db.collection('player').doc(newData.players[0]);
