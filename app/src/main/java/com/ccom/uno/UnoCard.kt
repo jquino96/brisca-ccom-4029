@@ -13,26 +13,27 @@ data class UnoCard(var suit: Suit, var type: Type) {
         WILD(500)
     }
 
-    enum class Type(val value: Int) {
-        ZERO(0),
-        ONE(1),
-        TWO(2),
-        THREE(3),
-        FOUR(4),
-        FIVE(5),
-        SIX(6),
-        SEVEN(7),
-        EIGHT(8),
-        NINE(9),
-        DRAW_TWO(10),
-        SKIP(11),
-        REVERSE(12),
-        WILD(13),
-        WILD_DRAW_FOUR(14)
+    enum class Type(val value: Int, val display: String) {
+        ZERO(0, "0"),
+        ONE(1, "1"),
+        TWO(2, "2"),
+        THREE(3, "3"),
+        FOUR(4, "4"),
+        FIVE(5, "5"),
+        SIX(6, "6"),
+        SEVEN(7, "7"),
+        EIGHT(8, "8"),
+        NINE(9, "9"),
+        DRAW_TWO(10, "+2"),
+        SKIP(11, "SKIP"),
+        REVERSE(12, "REVERSE"),
+        WILD(13, "WILD"),
+        WILD_DRAW_FOUR(14, "+4")
     }
 
+    fun jsonEncode(): Int = suit.value + type.value
+
     companion object {
-        fun jsonEncode(card: UnoCard): Int = card.suit.value + card.type.value
         fun jsonDecode(value: Int): UnoCard {
             val suit = when (value / 100) {
                 1 -> Suit.RED
@@ -63,28 +64,29 @@ data class UnoCard(var suit: Suit, var type: Type) {
             return UnoCard(suit, type)
         }
 
-        fun createDeck(): ArrayList<UnoCard> {
-            val cards: MutableList<UnoCard> = ArrayList()
+        fun createDeck(): MutableList<UnoCard> {
+            val deck = mutableListOf<UnoCard>()
             Type.values().forEach { type ->
+                type.ordinal
                 when (type) {
                     Type.ZERO -> {
                         Suit.values().forEach { suit ->
-                            if (suit !== Suit.WILD) cards.add(UnoCard(suit, type))
+                            if (suit !== Suit.WILD) deck.add(UnoCard(suit, type))
                         }
                     }
-                    Type.ONE..Type.REVERSE -> {
+                    in Type.ONE..Type.REVERSE -> {
                         Suit.values().forEach { suit ->
-                            if (suit !== Suit.WILD) repeat(2) { cards.add(UnoCard(suit, type)) }
+                            if (suit !== Suit.WILD) repeat(2) { deck.add(UnoCard(suit, type)) }
                         }
                     }
                     Type.WILD, Type.WILD_DRAW_FOUR -> {
-                        repeat(4) { cards.add(UnoCard(Suit.WILD, type)) }
+                        repeat(4) { deck.add(UnoCard(Suit.WILD, type)) }
                     }
                     else -> throw IllegalArgumentException("Invalid card type")
                 }
             }
-            cards.shuffle()
-            return cards as ArrayList<UnoCard>
+            deck.shuffle()
+            return deck
         }
     }
 }

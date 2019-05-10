@@ -27,21 +27,18 @@ exports.playerCreated = functions.firestore
                         const roomSnap = result.docs[0];
                         const room = roomSnap.data();
                         const players = room.players.concat([playerID]);
-                        console.log(players.concat(room.players));
+                        console.log(players);
                         const size = room.size + 1;
                         const full = (size === room.max_size);
                         const newRoom = {players, size, full};
                         // Set document to new room data
                         trs.update(roomSnap.ref, newRoom);
                         roomID = roomSnap.id;
-                        //
-                        event.ref.update({dealer: false});
                     } else {
                         const players = [playerID];
                         const roomRef = db.collection('room').doc();
-                        trs.set(roomRef, {players, size: 1, max_size: player.room_size, full: false});
+                        trs.set(roomRef, {players, size: 1, max_size: player.room_size, full: false, game: null});
                         roomID = roomRef.id;
-                        event.ref.update({dealer: true});
                     }
                     return trs.update(db.collection('player').doc(playerID), {room: roomID});
                 });

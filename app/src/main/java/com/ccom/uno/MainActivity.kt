@@ -2,18 +2,21 @@ package com.ccom.uno
 
 import android.content.Intent
 import android.os.Bundle
-import com.google.android.material.snackbar.Snackbar
-import androidx.appcompat.app.AppCompatActivity;
+import android.util.Log
+import androidx.appcompat.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
-import com.ccom.uno.R
-import com.google.firebase.firestore.DocumentSnapshot
-import com.google.firebase.firestore.EventListener
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.Source
+import com.google.firebase.firestore.*
 
 import kotlinx.android.synthetic.main.activity_main.*
+import java.util.concurrent.CountDownLatch
+import android.graphics.drawable.GradientDrawable
+import android.view.View
+import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -22,44 +25,71 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
 
+        val main = findViewById<ConstraintLayout>(R.id.main)
+
+
+
         val db = FirebaseFirestore.getInstance()
 
         val player = HashMap<String, Any>()
         player["name"] = "Test"
         player["room_size"] = 2
 
-        var roomID: String
-        var gameID: String
+//        var roomID: String? = null
+        var roomRef: DocumentReference? = null
+        var playerID: String? = null
+        var gameID: String? = null
         fab.setOnClickListener { view ->
-            db.collection("player")
-                .add(player)
-                .addOnSuccessListener {playerRef ->
-                    Toast.makeText(this, "Looking for game", Toast.LENGTH_SHORT)
-                    val playerRegistration = playerRef.addSnapshotListener { playerSnap, playerErr ->
-                        if (playerSnap != null && playerSnap.exists() && playerSnap.data != null) {
-                            val isDealer = playerSnap.data?.get("dealer") as Boolean?
-                            val roomID = playerSnap.data?.get("room").toString()
-                            val roomRef = db.collection("room").document(roomID)
-                            roomRef.addSnapshotListener { roomSnap, roomErr ->
-                                if (roomSnap != null && roomSnap.exists() && roomSnap.data != null) {
-                                    val gameID = roomSnap.data?.get("game")
+            Log.d("MainAct", "Button clicked")
+            if (playerID == null) {
+                db.collection("player")
+                    .add(player)
+                    .addOnSuccessListener { playerRef ->
+                        Log.d("MainAct", "PlayerCreate Listener added")
+                        playerID = playerRef.id
+                        val roomRefLatch = CountDownLatch(1)
+                        Toast.makeText(this, "Looking for game", Toast.LENGTH_LONG).show()
+                        val playerRegistration = playerRef.addSnapshotListener { playerSnap, playerErr ->
+                            Log.d("PlayerSnap", "New snapshot")
+                            if (playerSnap != null && playerSnap.exists() && playerSnap.data != null) {
+                                val roomID = playerSnap.data?.get("room") as String?
+                                Log.d("PlayerSnap", "Room id: $roomID")
+                                if (roomID != null) {
+                                    roomRef = db.collection("room").document(roomID)
+                                    roomRefLatch.countDown()
+                                    Log.d("roomRefLatch", "Released")
+                                }
+                            }
+                        }
+                        val gameIDLatch = CountDownLatch(1)
+                        var t = Thread {
+                            roomRefLatch.await()
+                            playerRegistration.remove()
+                            val roomRegistration = roomRef!!.addSnapshotListener { snap, _ ->
+                                if (snap != null && snap.exists() && snap.data != null) {
+                                    gameID = snap.data?.get("game") as String?
                                     if (gameID != null) {
-                                        startActivity(Intent(this, UnoActivity::class.java)
-                                            .putExtra("GAME_ID", gameID.toString())
-                                            .putExtra("PLAYER_ID", playerRef.id))
+                                        gameIDLatch.countDown()
+                                        Log.d("gameID", "Game created $gameID")
+
                                         Toast.makeText(this, "GAME: $gameID", Toast.LENGTH_SHORT).show()
                                     }
                                 }
                             }
-                            roomRef.get().addOnSuccessListener {
+                        }.start()
 
-                            }
-                            Toast.makeText(this, roomID, Toast.LENGTH_SHORT).show()
-
-                        }
+                        Thread {
+                            Log.d("gameID", "Waiting for game id")
+                            gameIDLatch.await()
+                            Log.d("gameIDLatch", "Released")
+                            startActivity(
+                                Intent(this, UnoActivity::class.java)
+                                    .putExtra("GAME_ID", gameID)
+                                    .putExtra("PLAYER_ID", playerID)
+                            )
+                        }.start()
                     }
-                    playerRegistration.remove()
-                }
+            }
         }
     }
 
