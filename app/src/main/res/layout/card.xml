@@ -4,13 +4,13 @@
                                             android:layout_height="wrap_content">
 
     <Button
-            android:text="TYPE"
-            android:layout_width="141dp"
-            android:layout_height="180dp"
-            android:id="@+id/card"
+            android:text="@string/card_back_text"
+            android:layout_width="100dp"
+            android:layout_height="160dp"
+            android:id="@+id/player2"
             app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" app:layout_constraintEnd_toEndOf="parent"
-            android:backgroundTint="#FF0000" android:textColor="#000000"
+            android:backgroundTint="#000000" android:textColor="#FFFFFF"
             android:clickable="true" android:focusable="true"
             android:textSize="24sp" android:textStyle="bold|italic"/>
 </androidx.constraintlayout.widget.ConstraintLayout>

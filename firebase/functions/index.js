@@ -21,7 +21,6 @@ exports.playerCreated = functions.firestore
                 .limit(1))
                 .then( result => {
                     var roomID;
-                    var dealer;
                     if (result.size === 1) {
                         // Get room document snapshot
                         const roomSnap = result.docs[0];
@@ -68,8 +67,6 @@ exports.roomUpdate = functions.firestore
                 dir: 1
             });
             const gameID = gameRef.id;
-            const dealerRef = db.collection('player').doc(newData.players[0]);
-            dealerRef.update({dealer: true});
             return change.after.ref.update({game: gameID});
         }
         return null;

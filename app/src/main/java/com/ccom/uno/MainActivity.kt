@@ -13,6 +13,8 @@ import kotlinx.android.synthetic.main.activity_main.*
 import java.util.concurrent.CountDownLatch
 import android.graphics.drawable.GradientDrawable
 import android.view.View
+import android.widget.Button
+import android.widget.EditText
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -25,21 +27,19 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
 
-        val main = findViewById<ConstraintLayout>(R.id.main)
-
-
+        val displayName = findViewById<EditText>(R.id.player_name)
+        val roomSize = findViewById<EditText>(R.id.room_size)
+        val findGameButton = findViewById<Button>(R.id.find_game_button)
 
         val db = FirebaseFirestore.getInstance()
 
-        val player = HashMap<String, Any>()
-        player["name"] = "Test"
-        player["room_size"] = 2
-
-//        var roomID: String? = null
         var roomRef: DocumentReference? = null
         var playerID: String? = null
         var gameID: String? = null
-        fab.setOnClickListener { view ->
+        findGameButton.setOnClickListener { view ->
+            val player = HashMap<String, Any>()
+            player["name"] = displayName.text.toString()
+            player["room_size"] = roomSize.text.toString().toInt()
             Log.d("MainAct", "Button clicked")
             if (playerID == null) {
                 db.collection("player")
@@ -62,7 +62,7 @@ class MainActivity : AppCompatActivity() {
                             }
                         }
                         val gameIDLatch = CountDownLatch(1)
-                        var t = Thread {
+                        Thread {
                             roomRefLatch.await()
                             playerRegistration.remove()
                             val roomRegistration = roomRef!!.addSnapshotListener { snap, _ ->
@@ -76,17 +76,17 @@ class MainActivity : AppCompatActivity() {
                                     }
                                 }
                             }
-                        }.start()
-
-                        Thread {
-                            Log.d("gameID", "Waiting for game id")
-                            gameIDLatch.await()
-                            Log.d("gameIDLatch", "Released")
-                            startActivity(
-                                Intent(this, UnoActivity::class.java)
-                                    .putExtra("GAME_ID", gameID)
-                                    .putExtra("PLAYER_ID", playerID)
-                            )
+                            Thread {
+                                Log.d("gameID", "Waiting for game id")
+                                gameIDLatch.await()
+                                Log.d("gameIDLatch", "Released")
+                                roomRegistration.remove()
+                                startActivity(
+                                    Intent(this, UnoActivity::class.java)
+                                        .putExtra("GAME_ID", gameID)
+                                        .putExtra("PLAYER_ID", playerID)
+                                )
+                            }.start()
                         }.start()
                     }
             }

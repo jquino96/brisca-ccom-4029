@@ -1,19 +1,18 @@
 package com.ccom.uno
 
+import android.graphics.Color
 import java.lang.IllegalArgumentException
-import java.util.*
-import kotlin.collections.ArrayList
 
 data class UnoCard(var suit: Suit, var type: Type) {
-    enum class Suit(val value: Int) {
-        RED(100),
-        GREEN(200),
-        BLUE(300),
-        YELLOW(400),
-        WILD(500)
+    enum class Suit(val value: Int, val color: Int) {
+        RED(100, Color.RED),
+        GREEN(200, Color.GREEN),
+        BLUE(300, Color.BLUE),
+        YELLOW(400, Color.YELLOW),
+        WILD(500, Color.BLACK)
     }
 
-    enum class Type(val value: Int, val display: String) {
+    enum class Type(val value: Int, val displayText: String) {
         ZERO(0, "0"),
         ONE(1, "1"),
         TWO(2, "2"),
@@ -32,6 +31,8 @@ data class UnoCard(var suit: Suit, var type: Type) {
     }
 
     fun jsonEncode(): Int = suit.value + type.value
+
+    infix fun cmpCard(card: UnoCard) = suit == card.suit || type == card.type || suit == Suit.WILD || card.suit == Suit.WILD
 
     companion object {
         fun jsonDecode(value: Int): UnoCard {

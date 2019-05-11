@@ -9,9 +9,9 @@ import android.widget.Button
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.RecyclerView
 
-class CardAdapter(private val hand: List<UnoCard>?) : RecyclerView.Adapter<CardAdapter.CardViewHolder>() {
-    class CardViewHolder(view: View): RecyclerView.ViewHolder(view) {
-        var cardView = view.findViewById<Button>(R.id.card)
+class CardAdapter(private val hand: List<UnoCard>?, private val onCardClick: View.OnClickListener?) : RecyclerView.Adapter<CardAdapter.CardViewHolder>() {
+    inner class CardViewHolder(view: View): RecyclerView.ViewHolder(view) {
+        var cardView: Button = view.findViewById<Button>(R.id.player2).apply { setOnClickListener(onCardClick) }
     }
 
     override fun getItemCount(): Int = hand?.size ?: 1
@@ -27,18 +27,14 @@ class CardAdapter(private val hand: List<UnoCard>?) : RecyclerView.Adapter<CardA
             holder.cardView.text = "UNO"
             return
         }
-
-        holder.cardView.text = hand[position].type.display
-        holder.cardView.backgroundTintList = ColorStateList.valueOf(when (hand[position].suit) {
-            UnoCard.Suit.BLUE -> Color.BLUE
-            UnoCard.Suit.RED -> Color.RED
-            UnoCard.Suit.YELLOW -> Color.YELLOW
-            UnoCard.Suit.GREEN -> Color.GREEN
-            UnoCard.Suit.WILD -> Color.BLACK
-        })
+        holder.cardView.tag = hand[position]
+        holder.cardView.text = hand[position].type.displayText
+        holder.cardView.backgroundTintList = ColorStateList.valueOf(hand[position].suit.color)
         if (hand[position].suit == UnoCard.Suit.BLUE
             || hand[position].suit == UnoCard.Suit.WILD
             || hand[position].suit == UnoCard.Suit.RED)
             holder.cardView.setTextColor(Color.WHITE)
+        else
+            holder.cardView.setTextColor(Color.BLACK)
     }
 }
